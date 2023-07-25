@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="baseDark">#3C2F88</color>
+    <color name="baseLight">#614CD8</color>
+    <color name="text">#F0D5FAF9</color>
+    <color name="accent">#F01CDFC2</color>
+    <color name="buttonGradientStart">#3C2F88</color>
+    <color name="buttonGradientEnd">#2F8885</color>
+    <color name="recordGradientStart">#CF158B</color>
+    <color name="recordGradientEnd">#770875</color>
+    <color name="playGradientStart">#16BD3A</color>
+    <color name="playGradientEnd">#0E6E3C</color>
+
+
+
+
+</resources>
