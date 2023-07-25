@@ -76,84 +76,6 @@ public class Recorder {
         return file.getPath();
     }
 
-//    public static void recordStart(String fileName) {
-//        Utils.showToast("in recordStart and fileName is " + fileName);
-//
-//        if (mediaRecorder == null) {
-//            mediaRecorder = new MediaRecorder();
-//        } else {
-//            mediaRecorder.reset();
-//        }
-//        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP); //MediaRecorder.OutputFormat.THREE_GPP
-//        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);//AAC  AMR_NB
-//        mediaRecorder.setAudioEncodingBitRate(128000); //128000
-//        mediaRecorder.setAudioSamplingRate(44100); // 44100
-//        mediaRecorder.setAudioChannels(2);
-//        mediaRecorder.setOutputFile(getFilePath(fileName));
-//
-//        try {
-//            mediaRecorder.prepare();
-//            mediaRecorder.start();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-//    public static void recordStop() {
-//        mediaRecorder.stop();
-//    }
-
-//    public static void recordStopSoundPool(String fileName) {
-//        if (mediaRecorder != null) {
-//            mediaRecorder.stop();
-//            mediaRecorder.reset();
-//        }
-//        if (soundPool != null) {
-//            Utils.showToast("in recordStopSoundPool and soundPool was not null, loading sound now");
-//            loadSound(fileName);
-//        } else {
-//            Utils.showToast("in recordStopSoundPool and soundPool WAS null!");
-//        }
-//    }
-
-//    public static void recordStopAudioTrack(String fileName) { //AudioTrack
-//        if (mediaRecorder != null) {
-//            mediaRecorder.stop();
-//            mediaRecorder.reset();
-//        }
-//        if (audioTrack != null) {
-//            Utils.showToast("in recordStopSoundPool and soundPool was not null, loading sound now");
-//            makeByteArray(fileName);
-//        } else {
-//            Utils.showToast("in recordStopSoundPool and soundPool WAS null!");
-//        }
-//    }
-
-//    public static void recordPlay(String fileName) {
-//        mediaPlayer = new MediaPlayer();
-//
-//        try {
-//            mediaPlayer.setDataSource(getFilePath(fileName));
-//            mediaPlayer.prepare();
-//            mediaPlayer.start();
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-//    public static void recordPlaySoundPool(String fileName) {
-//        Integer soundID = soundNameMap.get(fileName);
-//        if (soundID != null) {
-////            Utils.showToast("in recordPlaySoundPool, soundID was not null");
-//            soundPool.play(soundID, volume, volume, priority, loop, rate);
-//
-//        } else {
-//            Utils.showToast("No sound recorded yet for filePath " + fileName);
-//        }
-//    }
-
     public static void recordPlayAudioTrack(String fileName) {
         Log.d("AudioTrack", "in recordPlayAudioTrack fileName " + fileName);
         byte[] bytes = soundNameByteArrayMap.get(fileName);
@@ -188,53 +110,12 @@ public class Recorder {
         return soundPool;
     }
 
-//    public static void loadSound(String fileName) {
-//        Utils.showToast("in loadSound  and filePath was " + fileName);
-//        // Loads sound into Recorder's soundPool then adds it to the hash map so we can get handle on it via file name
-//        int soundID = soundPool.load(getFilePath(fileName), 1);
-//        soundNameMap.put(fileName, soundID);
-//        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-//            @Override
-//            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-//                Utils.showToast("Sound with filePath" + fileName + "has now loaded");
-//            }
-//        });
-//    }
-
     public static void releaseResources() {
         if (mediaRecorder != null) {
             mediaRecorder.release();
             mediaRecorder = null;
         }
-
-//        if (soundPool != null) {
-//            soundPool.release();
-//            soundPool = null;
-//        }
     }
-
-//    private static void makeByteArray(String fileName) { // AudioTrack
-//        Log.d("AudioTrack", "in makeByteArray fileName" + fileName);
-//        File file = new File(getFilePath(fileName));
-//        byte[] bytes = new byte[(int) file.length()];
-//        FileInputStream fileInputStream = null;
-//        try {
-//            fileInputStream = new FileInputStream(file);
-//            fileInputStream.read(bytes);
-//
-//        } catch (IOException e) {
-//            Log.d("AudioTrack", "IOException in makeByteArray method with fileName " + fileName);
-//        } finally {
-//            if (fileInputStream != null) {
-//                try {
-//                    fileInputStream.close();
-//                } catch (IOException e) {
-//                    Log.d("AudioTrack", "IOException in makeByteArray method when closing input stream with fileName " + fileName);
-//                }
-//            }
-//        }
-//        soundNameByteArrayMap.put(fileName, bytes);
-//    }
 
     public static void setAudioTrack() { // AudioTrack
 
