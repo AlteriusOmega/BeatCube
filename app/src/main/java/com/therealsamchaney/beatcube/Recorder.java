@@ -240,7 +240,7 @@ public class Recorder {
 
             String riff = "RIFF";
             String fileType = "WAVE";
-            String formatString = "formatString ";
+            String formatString = "fmt ";
             String data = "data";
             final int formatLength = 16;
             final int format = 1;

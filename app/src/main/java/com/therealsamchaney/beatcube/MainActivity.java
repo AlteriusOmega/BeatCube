@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar); // Replaces the default ActionBar with our custom ToolBar
         FrameLayout frameLayout = findViewById(R.id.grid_container);
-        changeGrid(defaultRows, defaultColumns);
+        changeGrid(defaultRows, defaultColumns); //  TODO rotating view and back resets the grid size rows and columns, need to store new grid size somewhere persistent
         frameLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             // new ViewTreeObserver.OnGlobalLayoutListener(){} is an "anonymous inner class" which is a one-time use class with no name, sort of like a lambda but for classes instead of functions
             @Override
