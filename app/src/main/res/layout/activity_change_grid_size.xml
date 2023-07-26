@@ -4,53 +4,120 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="32dp"
     tools:context="com.therealsamchaney.beatcube.ChangeGridSize">
 
-    <EditText
-        android:id="@+id/newRows"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="number"
-        android:text="3"
-        app:layout_constraintBottom_toTopOf="@id/newColumns"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <EditText
-        android:id="@+id/newColumns"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="134dp"
-        android:ems="10"
-        android:inputType="number"
-        android:text="3"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/newRows" />
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:text="Warning! Changing the grid size will delete all of your currently recorded sounds!"
-        app:layout_constraintBottom_toTopOf="@+id/newRows"
+        android:id="@+id/changeGridInstructions"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Please enter the number of rows and columns of buttons you want and click OK!"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/changeGridTitle"
+        app:layout_constraintBottom_toTopOf="@id/rowsLayout"
+        />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/changeGridOKButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:onClick="commitGridChange"
         android:text="OK"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:onClick="commitGridChange"
-        app:layout_constraintTop_toBottomOf="@+id/newColumns" />
+        app:layout_constraintTop_toBottomOf="@+id/columnsLayout" />
+
+    <EditText
+        android:id="@+id/changeGridTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:text="Change Grid Size"
+        app:layout_constraintBottom_toTopOf="@+id/changeGridInstructions"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rowsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/columnsLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/changeGridInstructions"
+        app:layout_constraintBottom_toBottomOf="@id/columnsLayout"
+        >
+
+        <EditText
+            android:id="@+id/newRows"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:ems="10"
+            android:inputType="number"
+            android:text="4"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/rowsLabel"
+
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/rowsLabel"
+            android:layout_width="93dp"
+            android:layout_height="match_parent"
+            android:ems="10"
+            android:inputType="text"
+            android:text="Rows"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/newRows"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/columnsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rowsLayout"
+        app:layout_constraintBottom_toTopOf="@id/changeGridOKButton"
+
+        >
+
+        <EditText
+            android:id="@+id/columnsLabel"
+            android:layout_width="85dp"
+            android:layout_height="50dp"
+            android:ems="10"
+            android:inputType="text"
+            android:text="Columns"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/newColumns"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/newColumns"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:ems="10"
+            android:inputType="number"
+            android:text="3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/columnsLabel"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.508" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

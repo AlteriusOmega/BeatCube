@@ -28,6 +28,7 @@ public class ChangeGridSize extends AppCompatActivity {
     public void commitGridChange(View view){
         String rowsInput = newRows.getText().toString().trim();
         String columnsInput = newColumns.getText().toString().trim();
+        // TODO Handle low and large values, set min and max for rows and columns
         try {
             int rowsInt = Integer.parseInt(rowsInput);
             try {
@@ -47,7 +48,6 @@ public class ChangeGridSize extends AppCompatActivity {
         }
 
         String rowsString = newRows.getText().toString();
-
 
     }
 }

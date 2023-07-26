@@ -11,6 +11,7 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
@@ -32,7 +33,7 @@ public class Recorder {
     private static int loop = 0;
     private static float rate = 1.0f;
     private static HashMap<String, byte[]> soundNameDataHashMap = new HashMap<>();
-    private static AudioTrack audioTrack;
+    private static HashMap<String, AudioTrack> soundNameAudioTrackHashMap = new HashMap<>();
     private static final int sampleRate = 44100;
     private static final int audioSource = MediaRecorder.AudioSource.MIC;
     private static final int channelOut = AudioFormat.CHANNEL_OUT_MONO;
@@ -56,7 +57,7 @@ public class Recorder {
         return file.getPath();
     }
 
-    public static void releaseAudioTrack() {
+    public static void releaseAudioTrack(AudioTrack audioTrack) {
         Log.d("releaseResources", "Recorder releaseResources: was called! ");
 
         if (audioTrack != null) {
@@ -76,11 +77,11 @@ public class Recorder {
             audioRecord = null;
         }
     }
-    public static void setAudioTrack() { // AudioTrack
+    public static AudioTrack createAudioTrack() { // AudioTrack
 
         Log.d("AudioTrack", "in makeAudioTrack, minBufferSizePlay is " + minBufferSizePlay);
 
-        audioTrack = new AudioTrack.Builder()
+        AudioTrack audioTrack = new AudioTrack.Builder()
                 .setAudioAttributes(new AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -93,6 +94,7 @@ public class Recorder {
                 .setBufferSizeInBytes(minBufferSizePlay)
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build();
+        return audioTrack;
     }
 
     public static void setAudioRecord(Context context) {
@@ -194,13 +196,40 @@ public class Recorder {
         Log.d("AudioTrack", "in recordPlay fileName " + fileName);
         byte[] bytes = soundNameDataHashMap.get(fileName); // Get the data from the hashmap based on file name
 
-        // Stop and release the current AudioTrack for this fileName if it exists
-        if (bytes != null) {
+        if (bytes != null) { // There is audio data for this file name
             Log.d("AudioTrack", "in recordPlay bytes was not null, fileName " + fileName);
+
+            // Check if there is an AudioTrack for this fileName
+            AudioTrack audioTrack = soundNameAudioTrackHashMap.get(fileName);
+            if (audioTrack == null){
+                // If there isn't one yet, make one
+                audioTrack = createAudioTrack();
+                soundNameAudioTrackHashMap.put(fileName, audioTrack); // Add the new AudioTrack to the hash map for this file name
+            } else {
+                // If there is an existing one, we just need to stop it to get ready to play again
+                // Check if it's playing currently
+                if (audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING){ // TODO this check is only necessary when chunking the audioTrack.write below which doesn't even really seem to help
+                    audioTrack.stop();
+                    audioTrack.flush();
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            // Play the AudioTrack and write the data to it
+            Log.d("recordPlay", "recordPlay: right before audioTrack.play()!");
             audioTrack.play();
-            audioTrack.write(bytes, 0, bytes.length);
+            Log.d("recordPlay", "recordPlay: right before audioTrack.write(bytes)!");
+
+            int chunkSize = 1024; // 1024 seems good
+            for (int i = 0; i < bytes.length; i += chunkSize){
+                int blockSize = Math.min(chunkSize, bytes.length - i);
+                audioTrack.write(bytes, i, blockSize);
+            }
+            Log.d("recordPlay", "recordPlay: At the end of recordPlay!");
         } else {
-//            Utils.showToast("No sound recorded yet for filePath " + fileName);
             Log.d("AudioTrack", "No sound recorded on that button yet!");
         }
     }

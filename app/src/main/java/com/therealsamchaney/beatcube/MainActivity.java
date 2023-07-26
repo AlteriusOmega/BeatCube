@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Recorder.setBufferSizes();
-        Recorder.setAudioTrack();
+        Recorder.createAudioTrack();
         Recorder.loadSavedWavFiles(soundNamePrefix);
 
         mediaPlayer = new MediaPlayer();
@@ -127,13 +127,18 @@ public class MainActivity extends AppCompatActivity {
             return true;
 
         } else if (itemID == R.id.item2) {
-            Utils.showToast( "Item 2 selected!");
+            Utils.showToast( "item2 selected!");
             return true;
         } else if (itemID == R.id.item3) {
+            Utils.showToast( "item3 selected!");
+
             return true;
         } else if (itemID == R.id.subitem1) {
+            Utils.showToast( "subitem1 selected!");
+
             return true;
         } else if (itemID == R.id.subitem2) {
+            Utils.showToast( "subitem2 selected!");
             return true;
         } else {
             return super.onOptionsItemSelected(item);
