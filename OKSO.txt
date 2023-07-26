@@ -1,0 +1,42 @@
+OK SO
+
+When should I make a AudioRecord object?
+You can reuse a single AudioRecord object for multiple recordings, but it will keep memory used up for that object even when you're not in the record activity
+
+I think we should make a new AudioRecord object at the beginning of Record Activity then kill it at the end of the activity
+
+So this will need to be done in onCreate and onDestroy of RecordActivity
+
+Should the recordComplete method release the audioRecord object?
+
+
+////////Here's the logic of the record activity://///////
+when not recording:
+	record should start the recording
+	stop record should do nothing
+		This means it needs to check if it's recording
+	clicking out should do nothing but release the audioRecord object so it doesn't use resources
+	
+When recording:
+	record should restart a new recording, discarding the previous one (only temporary file changed)
+	stop record should complete the recording and write it to the permanent file
+	clicking out of the activity should interrupt the recording discarding (only temp file changed) as well as release the audioRecord object 
+
+When should the audioRecord object be released?
+	only when closing the activity because otherwise we want to keep using the same one and don't want to have to re initialize it again for no reason
+
+
+/////////// AudioTrack playback logic ////////////
+When you click the same sound repeatedly it should interrupt and start over with no overlap
+When you click one sound then another they should keep playing and should overlap
+Maybe we can make special cases where a sound mutes antoher one like for hi hat closing and opening like mute groups but that's a far ahead future feature
+
+
+
+When should I make a AudioTrack object?
+Maybe make a new AudioTrack object for each button (not sure if all at once or only after being clicked)
+This way when one button is clicked repeatedly, it will have its own single personal AudioTrack object which we can stop and restart
+
+
+What should I do if I don't get permissions?
+

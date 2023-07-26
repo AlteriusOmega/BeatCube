@@ -1,24 +1,18 @@
 package com.therealsamchaney.beatcube;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.media.SoundPool;
-import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.BeatCube;
 
@@ -33,19 +27,14 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 
 public class Recorder {
-
-    private static final int MICROPHONE_PERMISSION_CODE = 200;
-    private static MediaRecorder mediaRecorder;
-    private static MediaPlayer mediaPlayer;
-//    private static SoundPool soundPool = createSoundPool();
-    private static HashMap<String, Integer> soundNameMap = new HashMap<>();
     private static float volume = 1.0f;
     private static int priority = 1;
     private static int loop = 0;
     private static float rate = 1.0f;
-    private static HashMap<String, byte[]> soundNameByteArrayMap = new HashMap<>();
+    private static HashMap<String, byte[]> soundNameDataHashMap = new HashMap<>();
     private static AudioTrack audioTrack;
     private static final int sampleRate = 44100;
+    private static final int audioSource = MediaRecorder.AudioSource.MIC;
     private static final int channelOut = AudioFormat.CHANNEL_OUT_MONO;
     private static final int channelIn = AudioFormat.CHANNEL_IN_MONO;
     private static final int encoding = AudioFormat.ENCODING_PCM_16BIT; // 2;//
@@ -53,20 +42,11 @@ public class Recorder {
     private static boolean isRecording = false;
     private static final int bitsPerSample = 16;
     private static final int channels = 1;
-
     private static int minBufferSizeRecord;
-
     private static int minBufferSizePlay;
     private static final String temporaryRawAudioFileName = "BeatCubeTempRawAudio.raw";
     private static Thread recordingThread;
     private static final int wavHeaderLength = 44;
-
-
-    public static void getMicPermission(Context context) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_CODE);
-        }
-    }
 
     private static String getFilePath(String fileName) {
         ContextWrapper contextWrapper = new ContextWrapper(BeatCube.getAppContext());
@@ -76,47 +56,26 @@ public class Recorder {
         return file.getPath();
     }
 
-    public static void recordPlayAudioTrack(String fileName) {
-        Log.d("AudioTrack", "in recordPlayAudioTrack fileName " + fileName);
-        byte[] bytes = soundNameByteArrayMap.get(fileName);
-        if (bytes != null) {
-            Log.d("AudioTrack", "in recordPlayAudioTrack bytes was not null, fileName " + fileName);
-            audioTrack.play();
-            audioTrack.write(bytes, 0, bytes.length);
-        } else {
-//            Utils.showToast("No sound recorded yet for filePath " + fileName);
-            Log.d("AudioTrack", "No sound recorded on that button yet!");
+    public static void releaseAudioTrack() {
+        Log.d("releaseResources", "Recorder releaseResources: was called! ");
+
+        if (audioTrack != null) {
+            audioTrack.stop();
+            audioTrack.release();
+            audioTrack = null;
         }
     }
 
-    public static SoundPool createSoundPool() {
-
-        SoundPool soundPool;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build();
-
-            soundPool = new SoundPool.Builder()
-                    .setMaxStreams(1000)
-                    .setAudioAttributes(audioAttributes)
-                    .build();
-        } else {
-            soundPool = new SoundPool(1000, AudioManager.STREAM_MUSIC, 0);
-        }
-        Utils.showToast("in createSoundPool, soundPool is " + soundPool);
-
-        return soundPool;
-    }
-
-    public static void releaseResources() {
-        if (mediaRecorder != null) {
-            mediaRecorder.release();
-            mediaRecorder = null;
+    public static void releaseAudioRecord(){
+        if (audioRecord != null) {
+            // Need to check if audioRecord is in initialized state or will get error when calling stop()
+            if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED){
+                audioRecord.stop();
+                audioRecord.release();
+            }
+            audioRecord = null;
         }
     }
-
     public static void setAudioTrack() { // AudioTrack
 
         Log.d("AudioTrack", "in makeAudioTrack, minBufferSizePlay is " + minBufferSizePlay);
@@ -136,69 +95,113 @@ public class Recorder {
                 .build();
     }
 
-    public static void setAudioRecord(Activity activity) {
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions((Activity) activity, new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_PERMISSION_CODE);
-        } else {
-
-            audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelIn, encoding, minBufferSizeRecord);
-        }
+    public static void setAudioRecord(Context context) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("setAudioRecord", "setAudioRecord: record permissions not granted!");
+                return;
+            }
+            audioRecord = new AudioRecord(audioSource, sampleRate, channelIn, encoding, minBufferSizeRecord);
+            Log.d("setAudioRecord", "setAudioRecord: just set up audioRecord!");
     }
 
-    private static void audioRecordWriteRawData() {
-        FileOutputStream fileOutputStream = null;
-        try {
-            String rawFilePath = getFilePath(temporaryRawAudioFileName);
+    private static void writeRawData() {
+        String rawFilePath = getFilePath(temporaryRawAudioFileName);
+        Log.d("writeRawData", "writeRawData: rawFilePath is " + rawFilePath);
+
+        try ( FileOutputStream fileOutputStream = new FileOutputStream(rawFilePath)) { // Try with resource fileOutputStream
             byte[] data = new byte[minBufferSizeRecord];
-            fileOutputStream = new FileOutputStream(rawFilePath);
             int read;
-            while (isRecording) {
+            while (isRecording && recordingThread != null) {
+                if (recordingThread.isInterrupted()){
+                    isRecording = false;
+                    try{
+                        audioRecord.stop();
+                    } catch (IllegalStateException e){
+                        e.printStackTrace();
+                    }
+                    break;
+                }
                 read = audioRecord.read(data, 0, minBufferSizeRecord);
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
-                    fileOutputStream.write(data);
+                    try{
+                        fileOutputStream.write(data);
+                    } catch (IOException e){
+                        e.printStackTrace();
+                    }
                 }
             }
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } finally {
-            if (fileOutputStream != null) {
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-    public static void recordStartAudioRecord() {
-        try {
-            int status = audioRecord.getState();
-            if (status == 1){
-                audioRecord.startRecording();
-                isRecording = true;
-            }
-            recordingThread = new Thread(Recorder::audioRecordWriteRawData);
-            recordingThread.start();
-        } catch (Exception e){
+        } catch (IOException e ){
             e.printStackTrace();
         }
     }
 
-    public static void recordStopAudioRecord(String wavFileName){
-        try {
-            if (audioRecord != null) {
-                isRecording = false;
-                int status = audioRecord.getState();
-                if (status == 1) {
-                    audioRecord.stop();
-                }
-
-                audioRecord.release();
-                recordingThread = null;
-                createWavFile(wavFileName);
+    // TODO make it so recording is cancelled if you cancel out of the RecordActivity dialog activity
+    public static void recordStart() {
+        Log.d("recordStart", "in recordStart");
+        if (isRecording) { // If we are already recording, we need to interrupt the previous recording
+            recordInterrupt();
+            try{
+                Thread.sleep(50); // Have to have a delay or AudioTrack buffer might not be fully released and cleaned up before new one is started and they overlap causing crash
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (Exception e){
-            e.printStackTrace();
+        }
+            try {
+                if (audioRecord != null) {
+                    int status = audioRecord.getState();
+                    if (status == AudioRecord.STATE_INITIALIZED) {
+                        audioRecord.startRecording();
+                        isRecording = true;
+
+                        // Start recording thread
+                        recordingThread = new Thread(Recorder::writeRawData);
+                        recordingThread.start();
+                    }
+                } else {
+                    Log.d("recordStart", "recordStart: audioRecord was null!!");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+    }
+    public static void recordInterrupt(){
+        if (recordingThread != null && recordingThread.isAlive()) {
+            recordingThread.interrupt();
+            recordingThread = null;
+        }
+    }
+    public static void recordComplete(String wavFileName){
+        Log.d("recordStop", "in recordStop");
+        if (isRecording) {
+            try {
+                if (audioRecord != null) {
+                    isRecording = false;
+                    if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+                        audioRecord.stop();
+                    }
+                    createWavFile(wavFileName);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else { // If we're not recording yet don't do anything
+            return;
+        }
+    }
+    public static void recordPlay(String fileName) {
+        Log.d("AudioTrack", "in recordPlay fileName " + fileName);
+        byte[] bytes = soundNameDataHashMap.get(fileName); // Get the data from the hashmap based on file name
+
+        // Stop and release the current AudioTrack for this fileName if it exists
+        if (bytes != null) {
+            Log.d("AudioTrack", "in recordPlay bytes was not null, fileName " + fileName);
+            audioTrack.play();
+            audioTrack.write(bytes, 0, bytes.length);
+        } else {
+//            Utils.showToast("No sound recorded yet for filePath " + fileName);
+            Log.d("AudioTrack", "No sound recorded on that button yet!");
         }
     }
 
@@ -240,6 +243,7 @@ public class Recorder {
             e.printStackTrace();
         }
     }
+
     private static void createWavFile(String wavFileName){
         Log.d("AudioTrack", "in createWavFile wavFileName" + wavFileName);
 
@@ -275,7 +279,7 @@ public class Recorder {
             bufferedInputStream.skip(wavHeaderLength);
             bufferedInputStream.read(audioData, 0, audioData.length);
             bufferedInputStream.close();
-            soundNameByteArrayMap.put(wavFileName, audioData);
+            soundNameDataHashMap.put(wavFileName, audioData);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -297,7 +301,18 @@ public class Recorder {
                 encoding
         );
         Log.d("AudioRecord", "in setBufferSizes minBufferSizePlay is " + minBufferSizePlay);
+    }
 
+    public static void loadSavedWavFiles(String fileNamePrefix){
+        ContextWrapper contextWrapper = new ContextWrapper(BeatCube.getAppContext());
+        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        File[] beatCubeWavFiles = musicDirectory.listFiles((dir, name) -> name.contains(fileNamePrefix));
+        Log.d("loadSavedWavFiles","beatCubeWavFiles is " + beatCubeWavFiles);
+        for (File file : beatCubeWavFiles){
+            loadWavIntoHashMap(file.getName());
+            Log.d("loadSavedWavFiles","in for each loop and file.getName() is  " + file.getName() + "and soundNameDataHashMap.get(file.getName()) is " + soundNameDataHashMap.get(file.getName()));
+
+        }
     }
 
 }

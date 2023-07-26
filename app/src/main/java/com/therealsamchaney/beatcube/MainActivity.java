@@ -7,9 +7,15 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -29,8 +35,7 @@ import android.widget.TableRow;
 import android.util.DisplayMetrics;
 import android.widget.ToggleButton;
 
-import com.therealsamchaney.beatcube.R;
-
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 //        Utils.showToast(this, "in onCreate!");
         super.onCreate(savedInstanceState);
+
+        // Request permissions
+        requestPermissions();
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar); // Replaces the default ActionBar with our custom ToolBar
@@ -54,11 +63,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Recorder.getMicPermission(this);
         Recorder.setBufferSizes();
         Recorder.setAudioTrack();
-        Recorder.setAudioRecord(this);
-
+        Recorder.loadSavedWavFiles(soundNamePrefix);
 
         mediaPlayer = new MediaPlayer();
         ToggleButton recordPlayToggle = findViewById(R.id.recordPlayToggle);
@@ -70,6 +77,36 @@ public class MainActivity extends AppCompatActivity {
             int columns = intent.getIntExtra("columns", defaultColumns);
             changeGrid(rows, columns);
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_REQUEST_CODE){
+            boolean allPermissionsGranted = true;
+            for (int result : grantResults){
+                Log.d("onRequestPermissionsResult", "in for each loop, result is " + result);
+                if (result != PackageManager.PERMISSION_GRANTED){
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+            if (allPermissionsGranted){
+                Log.d("onRequestPermissionsResult", "All permissions were granted!");
+            } else {
+                Log.d("onRequestPermissionsResult", "Not all permissions were granted!");
+                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+                alertBuilder.setTitle("Permissions Needed")
+                        .setMessage("BeatCube cannot function without audio recording permission. Please go into settings and grant it. ")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener(){
+                            public void onClick(DialogInterface dialog, int id){
+                                finish();
+                            }
+                        })
+                        .setCancelable(false); // Prevents user from dismissing the dialog
+                alertBuilder.create().show();
+            }
+        }
     }
 
     // To implement custom menu we have to override the parent class (AppCompatActivity) method onCreateOptionsMenu
@@ -105,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy(){
+        Log.d("onDestroy", "Main Activity onDestroy: was called! ");
         super.onDestroy();
-        Recorder.releaseResources();
 
     }
 
@@ -122,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private static final int PERMISSIONS_REQUEST_CODE = 420;
     private static int ROWS;
     private static int COLUMNS;
     private static int defaultRows = 4;
@@ -130,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
     private static int gridMargin = 10;
     private static MediaPlayer mediaPlayer;
     private static TableLayout tableLayout;
+    private static final String soundNamePrefix = "BeatCubeButtonSound";
 
 
     private void setButtonHeight(){
@@ -161,6 +200,26 @@ public class MainActivity extends AppCompatActivity {
 
     private interface ButtonModifier {
         void modifyButton(Button button);
+    }
+    public void requestPermissions(){
+        ArrayList<String> neededPermissions = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            neededPermissions.add(Manifest.permission.RECORD_AUDIO);
+        }
+
+        // READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE do not produce a permissions dialog
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            neededPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+//        }
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            neededPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//        }
+        if(!neededPermissions.isEmpty()){
+            ActivityCompat.requestPermissions(this, neededPermissions.toArray(new String[0]), PERMISSIONS_REQUEST_CODE);
+        }
     }
 
     private void doButtonModifier(Button button, ButtonModifier buttonModifier){
@@ -245,9 +304,11 @@ public class MainActivity extends AppCompatActivity {
     }
     private void onButtonTouch(View touchedButton, MotionEvent event){
         if (event.getAction() == MotionEvent.ACTION_DOWN){
-            ToggleButton toggleButton = findViewById(R.id.recordPlayToggle);
-            String fileName = "BeatCubeButtonSound" + touchedButton.getId() + ".WAV";//".mp3";
-            if (toggleButton.isChecked()){
+            ToggleButton recordPlayToggle = findViewById(R.id.recordPlayToggle);
+            String fileName = soundNamePrefix + touchedButton.getId() + ".WAV";//".mp3";
+
+            Sound sound = new Sound(fileName); // Create sound object for that button
+            if (recordPlayToggle.isChecked()){
                 Intent recordIntent = new Intent(this, RecordActivity.class);
                 recordIntent.putExtra("filePath", fileName);
                 startActivity(recordIntent);
@@ -257,9 +318,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
 //                        Recorder.recordPlaySoundPool(fileName);
-                        Recorder.recordPlayAudioTrack(fileName);
+                        Recorder.recordPlay(fileName);
                     }
                 }).start();
+//                 Recorder.recordPlay(fileName);
             }
         }
     }
