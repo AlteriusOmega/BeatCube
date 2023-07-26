@@ -307,7 +307,6 @@ public class MainActivity extends AppCompatActivity {
             ToggleButton recordPlayToggle = findViewById(R.id.recordPlayToggle);
             String fileName = soundNamePrefix + touchedButton.getId() + ".WAV";//".mp3";
 
-            Sound sound = new Sound(fileName); // Create sound object for that button
             if (recordPlayToggle.isChecked()){
                 Intent recordIntent = new Intent(this, RecordActivity.class);
                 recordIntent.putExtra("filePath", fileName);
