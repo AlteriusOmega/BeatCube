@@ -5,10 +5,10 @@ BeatCube is an Android live music making application for beat boxers and finger 
 <table>
     <tr>
         <td align="center">
-            <img src="./assets/BeatCubeScreenShotPlay.png" alt="BeatCube play mode" width="40%" />
+            <img src="./assets/BeatCubeScreenShotPlay.png" alt="BeatCube play mode" width="80%" />
         </td>
         <td align="center">
-            <img src="./assets/BeatCubeScreenShotRecord.png" alt="BeatCube record mode" width="40%" />
+            <img src="./assets/BeatCubeScreenShotRecord.png" alt="BeatCube record mode" width="80%" />
         </td>
     </tr>
 </table>
