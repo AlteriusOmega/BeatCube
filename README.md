@@ -2,7 +2,16 @@
 
 BeatCube is an Android live music making application for beat boxers and finger drummers. Quickly and easily record your own drum sounds (or any sound you want) and assign them to a grid of beautiful buttons, then tap the buttons to make a sick beat, or use it to make a hillarious sound-board or ambient soundscape. You can even customize the number of buttons to your liking and it will keep the sounds you've already recorded assigned to the same number button regardless of grid size. It also incorporates a modern vaporwave aesthetic with smooth gradients and cool tones for a relaxing vibe, take a look!
 
-<img src="./assets/BeatCubeScreenShotPlay.png" alt="BeatCube play mode" width="40%" /><img src="./assets/BeatCubeScreenShotRecord.png" alt="BeatCube record mode" width="40%" />
+<table>
+    <tr>
+        <td align="center">
+            <img src="./assets/BeatCubeScreenShotPlay.png" alt="BeatCube play mode" width="40%" />
+        </td>
+        <td align="center">
+            <img src="./assets/BeatCubeScreenShotRecord.png" alt="BeatCube record mode" width="40%" />
+        </td>
+    </tr>
+</table>
 
 ## Components
 BeatCube uses Android's activity-centered architecture as well as some other classes to provide shared functionality across all of the different activities
